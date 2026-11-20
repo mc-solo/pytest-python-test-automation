@@ -2,17 +2,21 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+
+# Virtual environments
 .venv/
 venv/
 env/
 
-# pytest / coverage
+# Environment / secrets (never commit real credentials)
+.env
+
+# pytest / coverage / reports
 .pytest_cache/
 htmlcov/
 .coverage
 coverage.xml
-*.html
-!report.html
+report.html
 
 # IDE / OS
 .idea/

@@ -1,0 +1,1 @@
+{"description":"Expected data for the JSONPlaceholder /users API tests (tests/test_api.py) and the format_user_name unit tests (tests/test_utils.py).","endpoints":{"users":"/users"},"known_user":{"display_name":"Leanne Graham (@Bret)","name":"Leanne Graham","username":"Bret"},"list_sample_size":5,"user_required_fields":["id","name","username","email"]}
