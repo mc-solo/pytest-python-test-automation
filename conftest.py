@@ -88,6 +88,12 @@ def users_data():
     return load_test_data("users")
 
 
+@pytest.fixture(scope="session")
+def ui_data():
+    """UI helper cases from ``test-data/ui.json``."""
+    return load_test_data("ui")
+
+
 @pytest.fixture
 def sample_post_payload(posts_data):
     """A valid payload for creating a post (from test-data/posts.json)."""

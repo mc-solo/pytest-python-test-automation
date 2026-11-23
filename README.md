@@ -12,13 +12,13 @@ pytest-python-test-automation/
 ├── .env.example          # Safe default env keys (copy to .env)
 ├── ARCHITECTURE.md       # Folder purposes, data flow, how to add a test
 ├── conftest.py           # Fixtures: config + test-data wired into tests
-├── pytest.ini            # testpaths, markers (api, unit)
+├── pytest.ini            # testpaths, markers (api, unit, utils), coverage threshold 90%
 ├── requirements.txt      # pytest, requests, pytest-html, pytest-cov
 ├── config/               # settings.py: base URL + timeout from env vars
 ├── docs/                 # SETUP.md, TESTING.md
-├── src/                  # utils.py: pure helpers under test, no network
-├── test-data/            # posts.json, users.json, utils.json
-└── tests/                # test_api.py (9 API), test_utils.py (21 unit)
+├── src/                  # utils.py + ui_helper.py: pure helpers under test, no network
+├── test-data/            # posts.json, users.json, utils.json, ui.json
+└── tests/                # test_api.py (9 API), test_utils.py (21 unit), test_ui_helper.py (13 utils)
 ```
 
 See `ARCHITECTURE.md` for why each folder exists and how
@@ -32,7 +32,12 @@ config, test-data, `src/`, and `tests/` connect.
 - `tests/test_utils.py` (21 tests): unit tests for the helpers in
   `src/utils.py`: `build_post_payload`, `is_valid_email`, `format_user_name`.
   All cases are loaded from `test-data/utils.json`.
-- `src/utils.py`: the helpers themselves, no network calls.
+- `tests/test_ui_helper.py` (13 tests): unit tests for the UI helpers
+  in `src/ui_helper.py`: `format_post_title`, `truncate_text`,
+  `render_post_summary`, `build_user_badge`. All cases are loaded
+  from `test-data/ui.json`.
+- `src/utils.py` and `src/ui_helper.py`: the helpers themselves, no
+  network calls.
 - `config/settings.py`: base URL and timeout from env vars
   (`API_BASE_URL`, `REQUEST_TIMEOUT`); the only place a URL or
   timeout default lives. `conftest.py` imports it and builds the
@@ -63,11 +68,12 @@ Full setup guide: `docs/SETUP.md`.
 python -m pytest
 ```
 
-Run only the API tests or only the unit tests:
+Run only the API tests, only the unit tests, or only the utils tests:
 
 ```bash
 python -m pytest -m api
 python -m pytest -m unit
+python -m pytest -m utils
 ```
 
 HTML report:
@@ -76,10 +82,10 @@ HTML report:
 python -m pytest --html=report.html --self-contained-html
 ```
 
-Coverage of `src/`:
+Coverage of `src/` runs on every run (see `pytest.ini`, fail-under 90%):
 
 ```bash
-python -m pytest --cov=src --cov-report=term-missing
+python -m pytest --cov-report=html
 ```
 
 Full testing guide: `docs/TESTING.md`.
@@ -89,6 +95,10 @@ Full testing guide: `docs/TESTING.md`.
 Ran `.venv/bin/python -m pytest -q` on 2026-11-20 with Python 3.12.3 and
 pytest 9.2.0: **30 passed in 2.26s** (9 API tests, 21 unit tests),
 live against JSONPlaceholder. Coverage of `src/`: 100%.
+
+The UI helper tests (13 tests, `tests/test_ui_helper.py`) were added
+after that run and have not been run yet; the suite is 43 tests on
+paper until it is run again.
 
 The previous run on 2026-11-18 was 29 passed in 2.28s; the count
 rose by 1 because the blank-name fallback case in `format_user_name`
