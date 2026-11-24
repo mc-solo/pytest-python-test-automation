@@ -1,5 +1,18 @@
 # Architecture
 
+## Diagram
+
+```mermaid
+flowchart LR
+    ENV[.env] --> CFG[config/]
+    CFG --> CONF[conftest.py]
+    TD[test-data/] --> TST[tests/]
+    CONF --> TST
+    TST --> SRC[src/]
+    SRC --> API[demo API]
+    TST --> COV[coverage report]
+```
+
 A small Python API + unit test project built with pytest and
 requests. The API tests run against the public JSONPlaceholder
 fake API. It does not store anything: POST/PUT/PATCH/DELETE
@@ -15,7 +28,7 @@ pytest-python-test-automation/
 ├── README.md             # Overview, setup, run commands, results
 ├── conftest.py           # Fixtures only: wires config + test-data into tests
 ├── pytest.ini            # testpaths, markers (api, unit)
-├── requirements.txt      # pytest, requests, pytest-html, pytest-cov
+├── requirements.txt      # pytest, requests, pytest-html, pytest-cov, allure-pytest
 ├── config/
 │   ├── __init__.py       # Re-exports Settings, get_settings, settings
 │   └── settings.py       # THE ONLY place with a URL/timeout default
@@ -28,10 +41,13 @@ pytest-python-test-automation/
 ├── test-data/
 │   ├── posts.json        # Post payloads, endpoints, status codes, ids
 │   ├── users.json        # User endpoint, required fields, known user
+│   ├── negative.json     # Negative/schema cases: bad ids, incomplete payloads,
+│   │                     # wrong-method cases, post/user field-type maps
 │   └── utils.json        # Input/expected pairs for the unit tests
 └── tests/
     ├── __init__.py
     ├── test_api.py       # 9 live API tests (marker: api)
+    ├── test_api_negative.py  # 15 negative/schema API tests (marker: api)
     └── test_utils.py     # 21 unit tests (marker: unit)
 ```
 
@@ -66,6 +82,10 @@ conftest.py
         │
         ▼
 tests/test_api.py  ──► JSONPlaceholder API ──► asserts on status/body
+tests/test_api_negative.py  ──► JSONPlaceholder API ──► asserts on
+    404s, incomplete creates, wrong methods, response schemas
+    (negative cases from test-data/negative.json, loaded at module
+    level so they can feed parametrize, as in tests/test_utils.py)
 tests/test_utils.py ──► src/utils.py (local only, no network)
         ▲
         │  input/expected pairs loaded at module level
@@ -107,6 +127,17 @@ and tests never define a URL, timeout, or expected value inline.
    `api_session`, `base_url`, and data fixtures. Mark it with
    the module-level `pytest.mark.api` (already applied).
 3. Run `python -m pytest -m api -v`.
+
+**New negative/schema API test** (e.g. a new invalid-id or wrong-method case):
+
+1. Add the case to `test-data/negative.json` (ids, payloads, methods,
+   endpoint keys from `posts.json`, field-type maps). Do not put the
+   value in the test.
+2. Add a test function in `tests/test_api_negative.py` using the
+   `api_session`, `base_url`, and data fixtures, with the module-level
+   `pytest.mark.api`. Wrap request/assert blocks in `allure.step`
+   and keep the class-level `@allure.feature` / `@allure.story`.
+3. Run `python -m pytest tests/test_api_negative.py -v`.
 
 **New unit test** (e.g. a new helper in `src/utils.py`):
 
